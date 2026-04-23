@@ -1,10 +1,6 @@
 from pydantic import BaseModel
 from typing import Union, List, Dict
-from .schema import TransformTemplateSchema
-
-JSONValue = Union[
-    str, int, float, bool, None, List["JSONValue"], Dict[str, "JSONValue"]
-]
+from .schema import TransformTemplateSchema, JSONValue
 
 
 class RuleSchema(BaseModel):
