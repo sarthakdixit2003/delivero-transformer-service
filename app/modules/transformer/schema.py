@@ -1,5 +1,9 @@
-from typing import Dict, Literal, Optional, Union
+from typing import Dict, List, Literal, Optional, Union
 from pydantic import BaseModel
+
+JSONValue = Union[
+    str, int, float, bool, None, List["JSONValue"], Dict[str, "JSONValue"]
+]
 
 TransformTypes = Literal[
     "to_string",
@@ -35,3 +39,6 @@ class OutputSchema(BaseModel):
 
 class TransformTemplateSchema(BaseModel):
     output: Dict[str, OutputSchema]
+
+# resolve forward refs
+OutputSchema.model_rebuild()
