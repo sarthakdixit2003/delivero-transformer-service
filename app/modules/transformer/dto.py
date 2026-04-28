@@ -1,5 +1,6 @@
+from app.modules.transformer.error_collector import Error
 from pydantic import BaseModel
-from typing import Union, List, Dict
+from typing import List, Dict
 from .schema import TransformTemplateSchema, JSONValue
 
 
@@ -14,5 +15,5 @@ class TransformRequest(BaseModel):
 
 
 class TransformResponse(BaseModel):
-    tranformed_payload: Dict[str, JSONValue]
-    errors: List[str]
+    transformed_payload: Dict[str, JSONValue]
+    errors: List[Error]

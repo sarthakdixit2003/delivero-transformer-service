@@ -1,6 +1,10 @@
+import logging
+from app.modules.transformer.error_collector import Error, ErrorCodes, ErrorCollector
 from app.modules.transformer.schema import JSONValue
 
-def resolve_value_from_path(path: str, payload: JSONValue, default=None) -> JSONValue:
+logger = logging.getLogger(__name__)
+
+def resolve_value_from_path(path: str, payload: JSONValue, errors: ErrorCollector, default=None) -> JSONValue:
     """
     Resolve a value from a path in a payload.
     Args:
@@ -11,6 +15,13 @@ def resolve_value_from_path(path: str, payload: JSONValue, default=None) -> JSON
         The value from the path in the payload.
     """
     if not path:
+        errors.add(
+            code=ErrorCodes.PATH_NOT_FOUND,
+            message="Path is required",
+            field="path",
+            path=path,
+            operation="resolve_value_from_path"
+        )
         return default
 
     parts = path.split('.')
@@ -22,12 +33,26 @@ def resolve_value_from_path(path: str, payload: JSONValue, default=None) -> JSON
 
     for part in parts:
         if(current is None):
+            errors.add(
+                code=ErrorCodes.PATH_NOT_FOUND,
+                message=f"Value at path {path} is not a valid type",
+                field=path,
+                path=path,
+                operation="resolve_value_from_path"
+            )
             return default
         
         if isinstance(current, dict):
             if(part in current):
                 current = current[part]
             else:
+                errors.add(
+                    code=ErrorCodes.PATH_NOT_FOUND,
+                    message=f"Key {part} not found in object at path {path}",
+                    field=path,
+                    path=path,
+                    operation="resolve_value_from_path"
+                )
                 return default
         
         elif isinstance(current, list) and part.isdigit():
@@ -35,9 +60,23 @@ def resolve_value_from_path(path: str, payload: JSONValue, default=None) -> JSON
             if(index>=0 and index<len(current)):
                 current = current[index]
             else:
+                errors.add(
+                    code=ErrorCodes.PATH_NOT_FOUND,
+                    message=f"Index {index} is out of range for list at path {path}",
+                    field=path,
+                    path=path,
+                    operation="resolve_value_from_path"
+                )
                 return default
         
         else:
+            errors.add(
+                code=ErrorCodes.TYPE_MISMATCH,
+                message=f"Value at path {path} is not a valid type",
+                field=path,
+                path=path,
+                operation="resolve_value_from_path"
+            )
             return default
 
-    return current
+    return current if current is not None else default
