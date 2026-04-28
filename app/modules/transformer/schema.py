@@ -1,21 +1,40 @@
-from typing import Dict, List, Literal, Optional, Union
-from pydantic import BaseModel
+from enum import Enum
+from typing import Dict, Literal, Optional, Union
+from pydantic import BaseModel, RootModel
 
-JSONValue = Union[
-    str, int, float, bool, None, List["JSONValue"], Dict[str, "JSONValue"]
-]
+type JSONType = (
+    str
+    | int
+    | float
+    | bool
+    | None
+    | list[JSONType]
+    | dict[str, JSONType]
+)
 
-TransformTypes = Literal[
-    "to_string",
-    "to_number",
-    "to_boolean",
-    "lowercase",
-    "uppercase",
-    "capitalize_first_letter",
-    "trim",
-]
-MaskTypes = Literal["last4", "full_mask"]
-OperatorTypes = Literal["eq", "neq", "gt", "gte", "lt", "lte"]
+JSONValue = JSONType
+
+# JSONValue.model_rebuild()
+
+class TransformTypes(str, Enum):
+    TO_STRING = "to_string"
+    TO_NUMBER = "to_number"
+    TO_BOOLEAN = "to_boolean"
+    LOWERCASE = "lowercase"
+    UPPERCASE = "uppercase"
+    TRIM = "trim"
+
+class MaskTypes(str, Enum):
+    LAST4 = "last4"
+    FULL_MASK = "full_mask"
+
+class OperatorTypes(str, Enum):
+    EQ = "eq"
+    NEQ = "neq"
+    GT = "gt"
+    GTE = "gte"
+    LT = "lt"
+    LTE = "lte"
 
 
 class ConditionSchema(BaseModel):

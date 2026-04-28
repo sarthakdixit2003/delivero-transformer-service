@@ -1,9 +1,14 @@
+import logging
 from fastapi import APIRouter
+
+from app.modules.transformer.service import TransformerService
 from .dto import TransformRequest, TransformResponse
 
-router = APIRouter()
+logger = logging.getLogger(__name__)
+transformer_router = APIRouter()
 
-
-@router.post("/", response_model=TransformResponse)
+@transformer_router.post("/", response_model=TransformResponse)
 def transformPayload(req: TransformRequest) -> TransformResponse:
-    return {"transformed_payload": req.payload, "errors": []}
+    logger.info("Transform payload endpoint called")
+    service = TransformerService(req.payload, req.rule)
+    return service.transformPayload()
