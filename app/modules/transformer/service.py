@@ -10,6 +10,7 @@ class TransformerServiceOutput(BaseModel):
     transformed_payload: Dict[str, JSONValue]
     errors: List[Error]
 
+
 class TransformerService:
     def __init__(self, payload: JSONValue, rule: RuleSchema):
         self.payload = payload
@@ -18,5 +19,9 @@ class TransformerService:
     def transformPayload(self) -> TransformerServiceOutput:
         errors = ErrorCollector()
 
-        executor_output = execute_transform(self.payload, self.rule.transform_template, errors)
-        return TransformerServiceOutput(transformed_payload=executor_output.transformed_payload, errors=errors.get())
+        executor_output = execute_transform(
+            self.payload, self.rule.transform_template, errors
+        )
+        return TransformerServiceOutput(
+            transformed_payload=executor_output.transformed_payload, errors=errors.get()
+        )

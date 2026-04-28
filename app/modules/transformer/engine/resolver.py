@@ -4,7 +4,10 @@ from app.modules.transformer.schema import JSONValue
 
 logger = logging.getLogger(__name__)
 
-def resolve_value_from_path(path: str, payload: JSONValue, errors: ErrorCollector, default=None) -> JSONValue:
+
+def resolve_value_from_path(
+    path: str, payload: JSONValue, errors: ErrorCollector, default=None
+) -> JSONValue:
     """
     Resolve a value from a path in a payload.
     Args:
@@ -20,30 +23,30 @@ def resolve_value_from_path(path: str, payload: JSONValue, errors: ErrorCollecto
             message="Path is required",
             field="path",
             path=path,
-            operation="resolve_value_from_path"
+            operation="resolve_value_from_path",
         )
         return default
 
-    parts = path.split('.')
+    parts = path.split(".")
 
-    if(parts and parts[0] == 'payload'):
+    if parts and parts[0] == "payload":
         parts = parts[1:]
 
     current = payload
 
     for part in parts:
-        if(current is None):
+        if current is None:
             errors.add(
                 code=ErrorCodes.PATH_NOT_FOUND,
                 message=f"Value at path {path} is not a valid type",
                 field=path,
                 path=path,
-                operation="resolve_value_from_path"
+                operation="resolve_value_from_path",
             )
             return default
-        
+
         if isinstance(current, dict):
-            if(part in current):
+            if part in current:
                 current = current[part]
             else:
                 errors.add(
@@ -51,13 +54,13 @@ def resolve_value_from_path(path: str, payload: JSONValue, errors: ErrorCollecto
                     message=f"Key {part} not found in object at path {path}",
                     field=path,
                     path=path,
-                    operation="resolve_value_from_path"
+                    operation="resolve_value_from_path",
                 )
                 return default
-        
+
         elif isinstance(current, list) and part.isdigit():
             index = int(part)
-            if(index>=0 and index<len(current)):
+            if index >= 0 and index < len(current):
                 current = current[index]
             else:
                 errors.add(
@@ -65,17 +68,17 @@ def resolve_value_from_path(path: str, payload: JSONValue, errors: ErrorCollecto
                     message=f"Index {index} is out of range for list at path {path}",
                     field=path,
                     path=path,
-                    operation="resolve_value_from_path"
+                    operation="resolve_value_from_path",
                 )
                 return default
-        
+
         else:
             errors.add(
                 code=ErrorCodes.TYPE_MISMATCH,
                 message=f"Value at path {path} is not a valid type",
                 field=path,
                 path=path,
-                operation="resolve_value_from_path"
+                operation="resolve_value_from_path",
             )
             return default
 

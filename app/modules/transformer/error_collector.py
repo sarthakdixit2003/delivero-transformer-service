@@ -15,6 +15,7 @@ class ErrorCodes(str, Enum):
     INVALID_ARRAY = "INVALID_ARRAY"
     SCHEMA_VALIDATION_ERROR = "SCHEMA_VALIDATION_ERROR"
 
+
 class Error(BaseModel):
     code: ErrorCodes
     message: str
@@ -23,25 +24,33 @@ class Error(BaseModel):
     operation: str
     value: Union[JSONValue, None] = None
 
+
 class ErrorCollector:
     def __init__(self):
         self.errors: List[Error] = []
 
-    
-    def add(self, code: ErrorCodes, message: str, field: str, path: str, operation: str, value: Union[JSONValue, None]=None):
-        self.errors.append(Error(
-            code=code,
-            message=message,
-            field=field,
-            path=path,
-            operation=operation,
-            value=value
-        ))
-
+    def add(
+        self,
+        code: ErrorCodes,
+        message: str,
+        field: str,
+        path: str,
+        operation: str,
+        value: Union[JSONValue, None] = None,
+    ):
+        self.errors.append(
+            Error(
+                code=code,
+                message=message,
+                field=field,
+                path=path,
+                operation=operation,
+                value=value,
+            )
+        )
 
     def extend(self, errors):
         self.errors.extend(errors)
-
 
     def get(self):
         return self.errors

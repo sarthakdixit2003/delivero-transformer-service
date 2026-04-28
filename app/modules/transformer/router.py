@@ -7,6 +7,7 @@ from .dto import TransformRequest, TransformResponse
 logger = logging.getLogger(__name__)
 transformer_router = APIRouter()
 
+
 @transformer_router.post("/", response_model=TransformResponse)
 def transformPayload(req: TransformRequest) -> TransformResponse:
     logger.info("Transform payload endpoint called")

@@ -2,7 +2,9 @@ import logging
 from fastapi import FastAPI, APIRouter
 from app.modules.transformer.router import transformer_router
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
@@ -17,6 +19,7 @@ router = APIRouter()
 def health_check() -> dict[str, str]:
     logger.info("Health check endpoint called")
     return {"status": "ok"}
+
 
 app.include_router(transformer_router, prefix="/transform", tags=["transform"])
 app.include_router(router, prefix="/api/v1")

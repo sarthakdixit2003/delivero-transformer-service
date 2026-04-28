@@ -2,19 +2,12 @@ from enum import Enum
 from typing import Dict, Literal, Optional, Union
 from pydantic import BaseModel, RootModel
 
-type JSONType = (
-    str
-    | int
-    | float
-    | bool
-    | None
-    | list[JSONType]
-    | dict[str, JSONType]
-)
+type JSONType = (str | int | float | bool | None | list[JSONType] | dict[str, JSONType])
 
 JSONValue = JSONType
 
 # JSONValue.model_rebuild()
+
 
 class TransformTypes(str, Enum):
     TO_STRING = "to_string"
@@ -24,9 +17,11 @@ class TransformTypes(str, Enum):
     UPPERCASE = "uppercase"
     TRIM = "trim"
 
+
 class MaskTypes(str, Enum):
     LAST4 = "last4"
     FULL_MASK = "full_mask"
+
 
 class OperatorTypes(str, Enum):
     EQ = "eq"
@@ -58,6 +53,7 @@ class OutputSchema(BaseModel):
 
 class TransformTemplateSchema(BaseModel):
     output: Dict[str, OutputSchema]
+
 
 # resolve forward refs
 OutputSchema.model_rebuild()
