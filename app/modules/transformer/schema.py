@@ -1,12 +1,10 @@
 from enum import Enum
-from typing import Dict, Literal, Optional, Union
-from pydantic import BaseModel, RootModel
+from typing import Dict, List, Literal, Optional, Union
+from pydantic import BaseModel
 
 type JSONType = (str | int | float | bool | None | list[JSONType] | dict[str, JSONType])
 
 JSONValue = JSONType
-
-# JSONValue.model_rebuild()
 
 
 class TransformTypes(str, Enum):
@@ -55,5 +53,13 @@ class TransformTemplateSchema(BaseModel):
     output: Dict[str, OutputSchema]
 
 
+class ValidationSchema(BaseModel):
+    type: Literal["string", "number", "boolean", "object", "array"]
+    required: Union[List[str], None] = None
+    properties: Union[Dict[str, ValidationSchema], None] = None
+    items: Optional["ValidationSchema"] = None
+
+
 # resolve forward refs
 OutputSchema.model_rebuild()
+ValidationSchema.model_rebuild()

@@ -1,11 +1,11 @@
 from app.modules.transformer.error_collector import Error
 from pydantic import BaseModel
 from typing import List, Dict
-from .schema import TransformTemplateSchema, JSONValue
+from .schema import TransformTemplateSchema, ValidationSchema, JSONValue
 
 
 class RuleSchema(BaseModel):
-    schema: Dict[str, JSONValue]
+    validation_schema: ValidationSchema
     transform_template: TransformTemplateSchema
 
 

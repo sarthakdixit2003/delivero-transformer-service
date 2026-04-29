@@ -6,12 +6,14 @@ from app.modules.transformer.engine.transformers import (
     mask_data,
     transform_data,
 )
+from app.modules.transformer.engine.validators import validate_required_fields
 from app.modules.transformer.error_collector import ErrorCodes, ErrorCollector
 from app.modules.transformer.schema import (
     JSONValue,
     MaskTypes,
     TransformTemplateSchema,
     TransformTypes,
+    ValidationSchema,
 )
 import logging
 
@@ -129,3 +131,88 @@ def execute_transform(
         output[key] = resolved_value
 
     return ExecutorOutput(transformed_payload=output)
+
+
+def execute_validation(
+    payload: JSONValue,
+    schema: ValidationSchema,
+    errors: ErrorCollector,
+    path: str = "payload",
+):
+    logger.info(f"Executing validation for path: {path}")
+    if payload is None:
+        return
+
+    if schema.type == "object":
+        if not isinstance(payload, dict):
+            errors.add(
+                ErrorCodes.SCHEMA_VALIDATION_ERROR,
+                "Payload is not a dictionary",
+                path,
+                path,
+                "validate_required_fields",
+            )
+            return
+
+        if schema.required is not None:
+            validate_required_fields(payload, schema.required, errors, path)
+
+        if schema.properties is not None:
+            for key, value in schema.properties.items():
+                if key in payload:
+                    current = payload[key]
+                    execute_validation(current, value, errors, f"{path}.{key}")
+
+    elif schema.type == "array":
+        if not isinstance(payload, list):
+            errors.add(
+                ErrorCodes.SCHEMA_VALIDATION_ERROR,
+                "Payload is not a list",
+                path,
+                path,
+                "validate_required_fields",
+            )
+            return
+
+        if schema.items is not None:
+            for index, item in enumerate(payload):
+                execute_validation(item, schema.items, errors, f"{path}[{index}]")
+
+    elif schema.type == "boolean":
+        if not isinstance(payload, bool):
+            errors.add(
+                ErrorCodes.SCHEMA_VALIDATION_ERROR,
+                "Payload is not a boolean",
+                path,
+                path,
+                "validate_required_fields",
+            )
+
+    elif schema.type == "string":
+        if not isinstance(payload, str):
+            errors.add(
+                ErrorCodes.SCHEMA_VALIDATION_ERROR,
+                "Payload is not a string",
+                path,
+                path,
+                "validate_required_fields",
+            )
+
+    elif schema.type == "number":
+        if not isinstance(payload, (int, float)):
+            errors.add(
+                ErrorCodes.SCHEMA_VALIDATION_ERROR,
+                "Payload is not a number",
+                path,
+                path,
+                "validate_required_fields",
+            )
+
+    else:
+        errors.add(
+            ErrorCodes.SCHEMA_VALIDATION_ERROR,
+            "Invalid schema type",
+            path,
+            path,
+            "validate_required_fields",
+        )
