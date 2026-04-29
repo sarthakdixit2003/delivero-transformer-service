@@ -27,14 +27,56 @@ def execute_transform(
     transform_template: TransformTemplateSchema,
     errors: ErrorCollector,
 ) -> ExecutorOutput:
-    output = dict[str, JSONValue]()
+    output: dict[str, JSONValue] = {}
+
     for key, value in transform_template.output.items():
+
         if value.value is not None:
             output[key] = value.value
             continue
 
         if value.condition is not None:
             output[key] = evaluate_condition(value.condition, payload, errors)
+            continue
+
+        if value.object is not None:
+            nested_template = TransformTemplateSchema(output=value.object)
+            result = execute_transform(payload, nested_template, errors)
+            output[key] = result.transformed_payload
+            continue
+
+        if value.map is not None:
+            path = ""
+            default = None
+
+            if value.path is not None:
+                path = value.path
+
+            if value.default is not None:
+                default = value.default
+
+            resolved_value = resolve_value_from_path(path, payload, errors, default)
+
+            iterable = resolved_value
+            item_output: List[JSONValue] = []
+
+            if not isinstance(iterable, list):
+                errors.add(
+                    code=ErrorCodes.TYPE_MISMATCH,
+                    message=f"Value is not a valid type",
+                    field="value",
+                    path="value",
+                    operation="transform_data",
+                )
+                iterable = []
+
+            nested_template = TransformTemplateSchema(output=value.map)
+
+            for item in iterable:
+                result = execute_transform(item, nested_template, errors)
+                item_output.append(result.transformed_payload)
+
+            output[key] = item_output
             continue
 
         path = ""
@@ -47,35 +89,6 @@ def execute_transform(
             default = value.default
 
         resolved_value = resolve_value_from_path(path, payload, errors, default)
-        logger.info(f"Resolved value for key {key}: {resolved_value}")
-        logger.info(f"Path: {path}")
-        logger.info(f"Default: {default}")
-
-        if value.object is not None:
-            nested_template = TransformTemplateSchema(output=value.object)
-            result = execute_transform(payload, nested_template, errors)
-            output[key] = result.transformed_payload
-            continue
-
-        if value.map is not None:
-            iterable = resolved_value
-            item_output: List[JSONValue] = []
-            if not isinstance(iterable, list):
-                errors.add(
-                    code=ErrorCodes.TYPE_MISMATCH,
-                    message=f"Value is not a valid type",
-                    field="value",
-                    path="value",
-                    operation="transform_data",
-                )
-                iterable = []
-            nested_template = TransformTemplateSchema(output=value.map)
-
-            for item in iterable:
-                result = execute_transform(item, nested_template, errors)
-                item_output.append(result.transformed_payload)
-            output[key] = item_output
-            continue
 
         if value.transform is not None:
             transform_type = value.transform
